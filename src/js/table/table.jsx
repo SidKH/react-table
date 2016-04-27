@@ -125,7 +125,7 @@ var PeopleComponent = React.createClass({
     return (
       <div className="people-component">
         <h1 className="page-header">{'Add new person'}</h1>
-        <AddPersonFormComponent inputVal={this.state.inputVal} onChange={this.addInputChange} onSubmit={this.addPerson} />
+        <AddPersonFormComponent clearForm={this.clearFormInput} inputVal={this.state.inputVal} onChange={this.addInputChange} onSubmit={this.addPerson} />
         <TableComponent onToggle={this.checkPersonInTable} people={this.state.people} />
       </div>
     );
