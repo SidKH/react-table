@@ -1,7 +1,4 @@
-
-var togglePerson = function () {
-  console.log(TableComponent);
-}
+var cx = window.classNames;
 
 /**
  * Cell component for the checkboxes
@@ -23,15 +20,41 @@ var CellComponent = React.createClass({
  * Table row component
  */
 var RowComponent = React.createClass({
+  getInitialState: function() {
+      return {
+        toggle: false
+      };
+  },
+  onClick: function () {
+    this.setState(Object.assign({}, this.state, {toggle: !this.state.toggle}));
+  },
+  onYes: function () {
+    this.props.onDelete(this.props.rowID);
+  },
+  onNo: function () {
+    this.setState(Object.assign({}, this.state, {toggle: false}));
+  },
   render: function () {
-    var cells = [];
+    var cells = [],
+      toggleClass = this.state.toggle ? 'warning' : '';
     this.props.person.roles.forEach((role, i) => {
       cells.push(<CellComponent onToggle={this.props.onToggle} role={role} key={i} cellID={i} rowID={this.props.rowID}  />);
+    });
+    var classes = cx({
+      'delete-cell': true,
+      'toggle': this.state.toggle
     });
     return (
       <tr>
         <td>{this.props.person.name}</td>
         {cells}
+        <td className={classes}>
+          <button className="btn btn-default delete" onClick={this.onClick}>Delete</button>
+          <div className="choose">
+            <button className="btn btn-default" onClick={this.onYes}>Yes</button>
+            <button className="btn btn-default" onClick={this.onNo}>No</button>
+          </div>
+        </td>
       </tr>
     );
   }
@@ -44,7 +67,7 @@ var TableComponent = React.createClass({
   render: function () {
     var tdRows = [];
     this.props.people.forEach((person, i) => {
-      tdRows.push(<RowComponent onToggle={this.props.onToggle} person={person} key={i} rowID={i} />);
+      tdRows.push(<RowComponent onDelete={this.props.onDelete} onToggle={this.props.onToggle} person={person} key={i} rowID={i} />);
     });
     return (
       <table className="table">
@@ -140,6 +163,7 @@ var PeopleComponent = React.createClass({
     this.setState(state);
   },
   addPerson: function (cb) {
+    if (!this.state.inputVal) { return; }
     var people = [...this.state.people];
     var person = {
       id: ++this.state.id,
@@ -153,6 +177,11 @@ var PeopleComponent = React.createClass({
   checkAddFormInput: function (i) {
     var state = JSON.parse(JSON.stringify(this.state));
     state.roles[i].selected = !state.roles[i].selected;
+    this.setState(state);
+  },
+  deletePerson: function (i) {
+    var state = JSON.parse(JSON.stringify(this.state));
+    state.people.splice(i, 1);
     this.setState(state);
   },
   render: function () {
@@ -170,6 +199,7 @@ var PeopleComponent = React.createClass({
         <TableComponent
           onToggle={this.checkPersonInTable}
           people={this.state.people}
+          onDelete={this.deletePerson}
         />
       </div>
     );

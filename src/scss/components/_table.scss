@@ -8,4 +8,17 @@
       user-select: none;
     }
   }
+  .delete-cell {
+    &.toggle {
+      .choose {
+        display: block;
+      }
+      .delete {
+        display: none;
+      }
+    }
+    .choose {
+      display: none;
+    }
+  }
 }
