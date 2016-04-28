@@ -9,14 +9,14 @@ import { PeopleComponent } from './table/table.jsx';
     {slug: 'genius', text: 'Genius'}
   ];
   var people = [
-    {id: 0, name: 'Hulk', roles: [{slug: 'superPower', status: true}, {slug: 'rich', status: false}, {slug: 'genius', status: true}]},
-    {id: 1, name: 'Obama', roles: [{slug: 'superPower', status: false}, {slug: 'rich', status: true}, {slug: 'genius', status: true}]},
-    {id: 2, name: 'Bill Gates', roles: [{slug: 'superPower', status: false}, {slug: 'rich', status: true}, {slug: 'genius', status: true}]}
+    {id: 0, name: 'Hulk', roles: [{slug: 'superPower', selected: true}, {slug: 'rich', selected: false}, {slug: 'genius', selected: true}]},
+    {id: 1, name: 'Obama', roles: [{slug: 'superPower', selected: false}, {slug: 'rich', selected: true}, {slug: 'genius', selected: true}]},
+    {id: 2, name: 'Bill Gates', roles: [{slug: 'superPower', selected: false}, {slug: 'rich', selected: true}, {slug: 'genius', selected: true}]}
   ];
 
   ReactDOM.render(
     <div class="container">
-      <PeopleComponent people={people} />
+      <PeopleComponent people={people} roles={roles} />
     </div>,
     document.getElementById('wrapper')
   );

@@ -8,12 +8,12 @@ var togglePerson = function () {
  */
 var CellComponent = React.createClass({
   onChange: function () {
-    this.props.onToggle(this.props.rowID, this.props.cellID, this.props.role.status);
+    this.props.onToggle(this.props.rowID, this.props.cellID, this.props.role.selected);
   },
   render: function () {
     return (
       <td>
-        <input type="checkbox" checked={this.props.role.status} onChange={this.onChange} />
+        <input type="checkbox" checked={this.props.role.selected} onChange={this.onChange} />
       </td>
     );
   }
@@ -65,6 +65,23 @@ var TableComponent = React.createClass({
 });
 
 /**
+ * Form checkbox component
+ */
+var AddPersonRole = React.createClass({
+  onChange: function () {
+    this.props.onCheck(this.props.addID);
+  },
+  render: function () {
+    return (
+      <div className="form-group">
+        <label htmlFor={this.props.role.slug}>{this.props.role.text}</label>
+        <input id={this.props.role.slug} type="checkbox" checked={this.props.role.selected} onChange={this.onChange} />
+      </div>
+    );
+  }
+});
+
+/**
  * Form for adding a new person
  */
 var AddPersonFormComponent = React.createClass({
@@ -73,14 +90,19 @@ var AddPersonFormComponent = React.createClass({
   },
   onSubmit: function (e) {
     e.preventDefault();
-    this.props.onSubmit();
+    this.props.onSubmit(this.props.clearForm);
   },
   render: function () {
+    var checkboxes = [];
+    this.props.roles.forEach((role, i) => {
+      checkboxes.push(<AddPersonRole onCheck={this.props.onCheck} role={role} key={i} addID={i} />);
+    });
     return (
       <form className="navbar-form navbar-left" onSubmit={this.onSubmit}>
         <div className="form-group">
           <input type="text" className="form-control" value={this.props.inputVal} onChange={this.props.onChange} />
         </div>
+        {checkboxes}
         <button type="submit" className="btn btn-default">{'Submit'}</button>
       </form>
     );
@@ -92,15 +114,22 @@ var AddPersonFormComponent = React.createClass({
  */
 var PeopleComponent = React.createClass({
   getInitialState: function () {
+    var roles = this.props.roles.map(function (role) {
+      role.selected = false;
+      return role;
+    });
     return {
+      id: 0,
       inputVal: '',
+      roles: roles,
       people: this.props.people
     }
   },
-  checkPersonInTable: function (rowID, cellID, status) {
-    var people = [...this.state.people];
-    people[rowID].roles[cellID].status = !people[rowID].roles[cellID].status;
-    this.setState({people: people});
+  checkPersonInTable: function (rowID, cellID) {
+    var state = JSON.parse(JSON.stringify(this.state));
+    var role = state.people[rowID].roles[cellID];
+    role.selected = !role.selected;
+    this.setState(state);
   },
   addInputChange: function (e) {
     var state = Object.assign({}, this.state, {inputVal: e.target.value});
@@ -110,23 +139,38 @@ var PeopleComponent = React.createClass({
     var state = Object.assign({}, this.state, {inputVal: ''});
     this.setState(state);
   },
-  addPerson: function () {
+  addPerson: function (cb) {
     var people = [...this.state.people];
     var person = {
-      id: 3,
+      id: ++this.state.id,
       name: this.state.inputVal,
-      roles: [{slug: 'superPower', status: false}, {slug: 'rich', status: false}, {slug: 'genius', status: false}]
+      roles: [...this.state.roles]
     }
     people.push(person);
     var state = Object.assign({}, this.state, {people: people});
+    this.setState(state, cb);
+  },
+  checkAddFormInput: function (i) {
+    var state = JSON.parse(JSON.stringify(this.state));
+    state.roles[i].selected = !state.roles[i].selected;
     this.setState(state);
   },
   render: function () {
     return (
       <div className="people-component">
         <h1 className="page-header">{'Add new person'}</h1>
-        <AddPersonFormComponent clearForm={this.clearFormInput} inputVal={this.state.inputVal} onChange={this.addInputChange} onSubmit={this.addPerson} />
-        <TableComponent onToggle={this.checkPersonInTable} people={this.state.people} />
+        <AddPersonFormComponent
+          clearForm={this.clearFormInput}
+          inputVal={this.state.inputVal}
+          roles={this.state.roles}
+          onChange={this.addInputChange}
+          onSubmit={this.addPerson}
+          onCheck={this.checkAddFormInput}
+        />
+        <TableComponent
+          onToggle={this.checkPersonInTable}
+          people={this.state.people}
+        />
       </div>
     );
   }
