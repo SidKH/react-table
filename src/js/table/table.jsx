@@ -1,153 +1,171 @@
+import { connect } from 'react-redux';
+import * as actions from './actions';
 var cx = window.classNames;
+
 
 /**
  * Cell component for the checkboxes
  */
-var CellComponent = React.createClass({
-  onChange: function () {
-    this.props.onToggle(this.props.rowID, this.props.cellID, this.props.role.selected);
-  },
-  render: function () {
-    return (
-      <td>
-        <input type="checkbox" checked={this.props.role.selected} onChange={this.onChange} />
-      </td>
-    );
+let CellComponent = ({rowID, cellID, role, onToggle, dispatch}) => {
+  return (
+    <td>
+      <input type="checkbox"
+        checked={role.selected}
+        onChange={() => onToggle(rowID, cellID, role.selected)}
+      />
+    </td>
+  );
+}
+CellComponent = connect(
+  null,
+  (dispatch) => {
+    return {
+      onToggle: (rowID, cellID, selected) => {
+        dispatch(actions.toggleCheckboxInTable(rowID, cellID, selected));
+      }
+    }
   }
-});
+)(CellComponent);
 
 /**
  * Table row component
  */
-var RowComponent = React.createClass({
-  getInitialState: function() {
-      return {
-        toggle: false
-      };
+let RowComponent = ({onToggleDelete, onDelete, person, rowID}) => {
+  var cells = [];
+  person.roles.forEach((role, i) => {
+    cells.push(<CellComponent role={role} key={i} cellID={i} rowID={rowID}  />);
+  });
+  var classes = cx({
+    'delete-cell': true,
+    'toggle': person.toggleDelete
+  });
+  return (
+    <tr>
+      <td>{person.name}</td>
+      {cells}
+      <td className={classes}>
+        <button className="btn btn-default delete" onClick={() => onToggleDelete(rowID)}>Delete</button>
+        <div className="choose">
+          <button className="btn btn-default" onClick={() => onDelete(rowID)}>Yes</button>
+          <button className="btn btn-default" onClick={() => onToggleDelete(rowID, false)}>No</button>
+        </div>
+      </td>
+    </tr>
+  );
+};
+
+RowComponent = connect(
+  (store, props) => {
+    return {
+      people: store.people,
+      person: store.people[props.rowID]
+    }
   },
-  onClick: function () {
-    this.setState(Object.assign({}, this.state, {toggle: !this.state.toggle}));
-  },
-  onYes: function () {
-    this.props.onDelete(this.props.rowID);
-  },
-  onNo: function () {
-    this.setState(Object.assign({}, this.state, {toggle: false}));
-  },
-  render: function () {
-    var cells = [],
-      toggleClass = this.state.toggle ? 'warning' : '';
-    this.props.person.roles.forEach((role, i) => {
-      cells.push(<CellComponent onToggle={this.props.onToggle} role={role} key={i} cellID={i} rowID={this.props.rowID}  />);
-    });
-    var classes = cx({
-      'delete-cell': true,
-      'toggle': this.state.toggle
-    });
-    return (
-      <tr>
-        <td>{this.props.person.name}</td>
-        {cells}
-        <td className={classes}>
-          <button className="btn btn-default delete" onClick={this.onClick}>Delete</button>
-          <div className="choose">
-            <button className="btn btn-default" onClick={this.onYes}>Yes</button>
-            <button className="btn btn-default" onClick={this.onNo}>No</button>
-          </div>
-        </td>
-      </tr>
-    );
+  (dispatch) => {
+    return {
+      onToggleDelete: (rowID, value) => {
+        dispatch(actions.toggleDelete(rowID, value));
+      },
+      onDelete: (rowID) => {
+        dispatch(actions.deletePerson(rowID));
+      }
   }
-});
+})(RowComponent);
+
 
 /**
  * Table component
  */
-var TableComponent = React.createClass({
-  render: function () {
-    var tdRows = [];
-    this.props.people.forEach((person, i) => {
-      tdRows.push(<RowComponent onDelete={this.props.onDelete} onToggle={this.props.onToggle} person={person} key={i} rowID={i} />);
-    });
-    return (
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Super Power</th>
-            <th>Rich</th>
-            <th>Genius</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tdRows}
-        </tbody>
-      </table>
-    );
+let TableComponent = ({people}) => {
+  var tdRows = [];
+  people.forEach((person, i) => {
+    tdRows.push(<RowComponent key={i} rowID={i} />);
+  });
+  return (
+    <table className="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Super Power</th>
+          <th>Rich</th>
+          <th>Genius</th>
+        </tr>
+      </thead>
+      <tbody>
+        {tdRows}
+      </tbody>
+    </table>
+  );
+};
+
+TableComponent = connect(function (store) {
+  return {
+    people: store.people,
   }
-});
+})(TableComponent);
 
 /**
  * Form checkbox component
  */
-var AddPersonRole = React.createClass({
-  onChange: function () {
-    this.props.onCheck(this.props.addID);
-  },
-  render: function () {
-    return (
-      <div className="form-group">
-        <label htmlFor={this.props.role.slug}>{this.props.role.text}</label>
-        <input id={this.props.role.slug} type="checkbox" checked={this.props.role.selected} onChange={this.onChange} />
-      </div>
-    );
+var AddPersonRole = ({onCheck, addID, role}) => (
+  <div className="form-group">
+    <label htmlFor={role.slug}>{role.text}</label>
+    <input id={role.slug} type="checkbox" checked={role.selected} onChange={() => onCheck(addID)} />
+  </div>
+);
+
+AddPersonRole = connect(
+  null,
+  (dispatch) => {
+    return {
+      onChange: () => dispatch(actions.checkRoleInForm(addId))
+    }
   }
-});
+)(AddPersonRole);
 
 /**
  * Form for adding a new person
  */
-var AddPersonFormComponent = React.createClass({
-  onClick: function () {
-    this.props.onAddPerson();
+let AddPersonFormComponent = ({onChange, onSubmit, clearInput, roles, inputVal}) => {
+  var checkboxes = [];
+  roles.forEach((role, i) => {
+    checkboxes.push(<AddPersonRole role={role} key={i} addID={i} />);
+  });
+  return (
+    <form className="navbar-form navbar-left" onSubmit={onSubmit}>
+      <div className="form-group">
+        <input type="text" className="form-control" value={inputVal} onChange={onChange} />
+      </div>
+      {checkboxes}
+      <button type="submit" className="btn btn-default">{'Submit'}</button>
+    </form>
+  );
+};
+
+AddPersonFormComponent = connect(
+  (store) => {
+    return {
+      inputVal: store.inputVal,
+      roles: store.roles
+    }
   },
-  onSubmit: function (e) {
-    e.preventDefault();
-    this.props.onSubmit(this.props.clearForm);
-  },
-  render: function () {
-    var checkboxes = [];
-    this.props.roles.forEach((role, i) => {
-      checkboxes.push(<AddPersonRole onCheck={this.props.onCheck} role={role} key={i} addID={i} />);
-    });
-    return (
-      <form className="navbar-form navbar-left" onSubmit={this.onSubmit}>
-        <div className="form-group">
-          <input type="text" className="form-control" value={this.props.inputVal} onChange={this.props.onChange} />
-        </div>
-        {checkboxes}
-        <button type="submit" className="btn btn-default">{'Submit'}</button>
-      </form>
-    );
+  (dispatch, store) => {
+    return {
+      onSubmit: function (e) {
+        e.preventDefault();
+        dispatch(actions.addPerson());
+      },
+      onChange: (e) => { dispatch(actions.addInputChange(e.target.value)); },
+      clearInput: () => { dispatch(actions.clearInput()) }
+    }
   }
-});
+)(AddPersonFormComponent);
 
 /**
  * Container component
  */
-var PeopleComponent = React.createClass({
-  getInitialState: function () {
-    var roles = this.props.roles.map(function (role) {
-      role.selected = false;
-      return role;
-    });
-    return {
-      id: 0,
-      inputVal: '',
-      roles: roles,
-      people: this.props.people
-    }
-  },
+let PeopleComponent = React.createClass({
+  
   checkPersonInTable: function (rowID, cellID) {
     var state = JSON.parse(JSON.stringify(this.state));
     var role = state.people[rowID].roles[cellID];
@@ -184,26 +202,26 @@ var PeopleComponent = React.createClass({
     state.people.splice(i, 1);
     this.setState(state);
   },
+  toggleDelete: function (rowID, val) {
+    var state = JSON.parse(JSON.stringify(this.state));
+    state.people[rowID].toggleDelete = typeof val !== 'undefined' ? val : !state.people[rowID].toggleDelete;
+    this.setState(state);
+  },
   render: function () {
     return (
       <div className="people-component">
         <h1 className="page-header">{'Add new person'}</h1>
-        <AddPersonFormComponent
-          clearForm={this.clearFormInput}
-          inputVal={this.state.inputVal}
-          roles={this.state.roles}
-          onChange={this.addInputChange}
-          onSubmit={this.addPerson}
-          onCheck={this.checkAddFormInput}
-        />
-        <TableComponent
-          onToggle={this.checkPersonInTable}
-          people={this.state.people}
-          onDelete={this.deletePerson}
-        />
+        <AddPersonFormComponent />
+        <TableComponent />
       </div>
     );
   }
 });
+
+function mapStateToProps(state) {
+  return state;
+}
+
+PeopleComponent = connect((state) => state)(PeopleComponent);
 
 export { PeopleComponent };

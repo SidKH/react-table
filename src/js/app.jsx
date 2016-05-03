@@ -1,5 +1,8 @@
 import HP from './helpers';
 import { PeopleComponent } from './table/table.jsx';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import { tableApp } from './table/reducers';
 
 (function ($) {
 
@@ -14,10 +17,14 @@ import { PeopleComponent } from './table/table.jsx';
     {id: 2, name: 'Bill Gates', roles: [{slug: 'superPower', selected: false}, {slug: 'rich', selected: true}, {slug: 'genius', selected: true}]}
   ];
 
+  let store = createStore(tableApp);
+
   ReactDOM.render(
-    <div class="container">
-      <PeopleComponent people={people} roles={roles} />
-    </div>,
+    <Provider store={store}>
+      <div class="container">
+        <PeopleComponent />
+      </div>
+    </Provider>,
     document.getElementById('wrapper')
   );
 

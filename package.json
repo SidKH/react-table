@@ -49,6 +49,9 @@
   },
   "dependencies": {
     "bower": "^1.7.2",
-    "del": "^2.2.0"
+    "del": "^2.2.0",
+    "react": "^15.0.2",
+    "react-redux": "^4.4.5",
+    "redux": "^3.5.2"
   }
 }
