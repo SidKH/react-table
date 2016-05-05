@@ -107,18 +107,18 @@ TableComponent = connect(function (store) {
 /**
  * Form checkbox component
  */
-var AddPersonRole = ({onCheck, addID, role}) => (
+var AddPersonRole = ({onChange, addID, role}) => (
   <div className="form-group">
     <label htmlFor={role.slug}>{role.text}</label>
-    <input id={role.slug} type="checkbox" checked={role.selected} onChange={() => onCheck(addID)} />
+    <input id={role.slug} type="checkbox" checked={role.selected} onChange={onChange} />
   </div>
 );
 
 AddPersonRole = connect(
   null,
-  (dispatch) => {
+  (dispatch, props) => {
     return {
-      onChange: () => dispatch(actions.checkRoleInForm(addId))
+      onChange: () => dispatch(actions.changeFormCheckbox(props.addID))
     }
   }
 )(AddPersonRole);

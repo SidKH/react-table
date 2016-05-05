@@ -48,3 +48,10 @@ export function checkRoleInForm(id) {
     id
   }
 }
+
+export function changeFormCheckbox(id) {
+  return {
+    type: 'CHANGE_FORM_CHECKBOX',
+    id
+  }
+}
