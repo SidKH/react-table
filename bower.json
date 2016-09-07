@@ -27,6 +27,6 @@
     "marked": "^0.3.5",
     "bootstrap-sass": "^3.3.6",
     "classnames": "^2.2.4",
-    "redux": "https://npmcdn.com/redux/dist/redux.js"
+    "redux": "https://unpkg.com/redux/dist/redux.js"
   }
 }
